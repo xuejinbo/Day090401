@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ln.mapper.ShopMapper">
+    <select id="getAll" resultType="ShopBean">
+    SELECT
+    a.*, b.tname
+    FROM
+    tb_shop a
+    LEFT JOIN tb_type b ON a.tid = b.tid where cc=1
+    </select>
+    <insert id="addShop">
+       insert into tb_shop(name,price,address,num,tid)values (#{name},#{price},#{address},#{num},#{tid})
+    </insert>
+    <update id="delStu">
+        update tb_shop set cc=0 where id=#{id}
+    </update>
+</mapper>

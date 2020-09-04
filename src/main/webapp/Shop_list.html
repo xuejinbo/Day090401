@@ -1,0 +1,175 @@
+<html>
+<head>
+    <title>商品管理</title>
+    <meta charset="utf-8" />
+    <script type="application/javascript" src="angular/angular.min.js"></script>
+</head>
+<script>
+    var app=angular.module('myApp',[]); //定义了一个叫myApp的模块
+    //定义控制器
+    app.controller('myController',function($scope,$http){
+        $scope.findAll=function(){
+            $scope.entity={}={};
+            $http.post("ShopController/getAll.do").success(function(response){
+                    $scope.list=response;
+                })
+            }
+        $scope.findTypeList=function () {
+            $http.post('TypeController/getType.do').success(
+                function (response) {
+                    $scope.typelist=response;
+                })
+        }
+
+        $scope.toAdd = function () {
+            $scope.shop={};
+            document.getElementById("add").style.display="block";
+        }
+        $scope.saveStu = function () {
+            $http.post('ShopController/addShop.do',$scope.stu).success(function (response) {
+                if(response.success){
+                    alert(response.message);
+                    $scope.findAll();
+                    document.getElementById("add").style.display="none";
+                }else{
+                    alert(response.message+"11111");
+                }
+            })
+        }
+        $scope.ids =[];
+        $scope.updateSelection = function ($event,id) {
+            if($event.target.checked){
+                $scope.ids.push(id);
+            }else{
+                //这个是用户取消选择了，我们需要把用户取消的这个id在数组中的位置找出来，下标
+                var index = $scope.ids.indexOf(id);
+                /**
+                 *去按照下标删除，第二个参数，是删除几个，只能删除一个
+                 */
+                $scope.ids.splice(index,1);
+            }
+          //  alert($scope.ids);
+        }
+        $scope.deleteStu = function () {
+            $http.post("ShopController/delShop.do",$scope.ids).success(function (response) {
+                if(response.success){
+                    alert(response.success);
+                    $scope.findAll();
+                }else{
+                    alert(response.message);
+                }
+            })
+        }
+        //省下拉菜单
+        $scope.findCityByPid=function(pid){
+            $http.post('CityController/insertCityBypid.do?pid='+pid).success(
+                function (response) {
+                    $scope.City1List=response;
+                })
+        }
+        //市下拉菜单
+        $scope.$watch("entity.cid1",function (newVal,oldVal) {
+            $scope.City2List=[],
+                $scope.City3List=[],
+                $scope.entity.address = $("#cid1").find("option:selected").text();
+            $http.post('CityController/insertCityBypid.do?pid='+newVal).success(
+                function (response) {
+                    $scope.City2List=response;
+                })
+        })
+        //县下拉菜单
+        $scope.$watch("entity.cid2",function (newVal,oldVal) {
+            $scope.City3List=[],
+                $scope.entity.address =  $("#cid1").find("option:selected").text()+$("#cid2").find("option:selected").text();
+            $http.post('CityController/insertCityBypid.do?pid='+newVal).success(
+                function (response) {
+                    $scope.City3List=response;
+                })
+        })
+        //监听县拼接省市县地址
+        $scope.$watch("entity.cid3",function (newVal,oldVal) {
+            $scope.entity.address =  $("#cid1").find("option:selected").text()+$("#cid2").find("option:selected").text()+$("#cid3").find("option:selected").text();
+        })
+
+    });
+
+</script>
+<body ng-app="myApp" ng-controller="myController" ng-init="findAll();findTypeList();findCityByPid(1)" >
+<center>
+    <h1>学生管理</h1>
+<table border="1" cellspacing="0" width="600" rules="all">
+    <input type="button" value="批量删除" ng-click="deleteStu()"/><br>
+    <input type="button" ng-click="toAdd()" value="新增"/><br>
+    <tr>
+        <th>编号</th>
+        <th>商品编号</th>
+        <th>商品名称</th>
+        <th>商品价格</th>
+        <th>生产地址</th>
+        <th>商品库存</th>
+        <th>商品类型</th>
+        <th>操作</th>
+    </tr>
+    <tr ng-repeat="s in list">
+        <td><input type="checkbox" ng-click="updateSelection($event,s.id)"/></td>
+        <td>{{s.id}}</td>
+        <td>{{s.name}}</td>
+        <td>{{s.price}}</td>
+        <td>{{s.address}}</td>
+        <td>{{s.num}}</td>
+        <td>{{s.tname}}</td>
+        <td><input type="button" value="修改" ng-click="findOne(s.id)"/></td>
+    </tr>
+</table>
+    <div id="add"  style="display: none" align="center">
+        <h3>商品入库</h3>
+        <table>
+            <tr align="center">
+                <td>商品名称:</td>
+                <td><input type="text" ng-model="entity.name" name="diNone"></td>
+            </tr>
+            <tr align="center">
+                <td>商品价格:</td>
+                <td><input type="text"  ng-model="entity.price" name="diNone"></td>
+            </tr>
+            <tr align="center">
+                <td>商品库存:</td>
+                <td><input type="text"  ng-model="entity.num" ></td>
+            </tr>
+            <tr>
+                <td>地址:</td>
+                <td>
+                    <select   ng-model="entity.cid1" id="cid1"  >
+                        <option ng-value="-1" selected>--请选择省--</option>
+                        <option ng-repeat="c in City1List"  ng-value="c.id" >{{c.cname}}</option>
+                    </select>
+                    省--
+                    <select ng-model="entity.cid2" id="cid2">
+                        <option ng-value="-1" selected>--请选择市--</option>.
+                        <option ng-repeat="c in City2List" ng-value="c.id" >{{c.cname}}</option>
+                    </select>
+                    市--
+                    <select ng-model="entity.cid3" id="cid3">
+                        <option ng-value="-1" selected>--请选择县--</option>
+                        <option ng-repeat="c in City3List" ng-value="c.id">{{c.cname}}</option>
+                    </select>
+                    县--
+                </td>
+            </tr>
+
+            <tr>
+                <td>商品类型:</td>
+                <td>
+                    <select ng-model="entity.tId">
+                        <option ng-repeat="t in typelist" value="{{t.tid}}" >{{t.tname}}</option>
+                    </select>
+                </td>
+            </tr>
+            <tr align="center">
+                <td colspan="2"><input type="button" value="保存" ng-click="saveStu()"/></td>
+            </tr>
+        </table>
+    </div>
+</center>
+</body>
+</html>

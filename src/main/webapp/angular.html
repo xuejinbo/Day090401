@@ -1,0 +1,140 @@
+<html>
+<head>
+    <title>入门小Demo-8  内置服务</title>
+    <meta charset="utf-8" />
+    <script type="application/javascript" src="angular/angular.min.js"></script>
+</head>
+<script>
+    var app=angular.module('myApp',[]); //定义了一个叫myApp的模块
+    //定义控制器
+    app.controller('myController',function($scope,$http){
+        $scope.findAll=function(){
+            $http.post("StudentController/insertStu.do").success(function(response){
+                    $scope.list=response;
+                })
+            }
+        $scope.toAdd = function () {
+            $scope.stu={};
+            document.getElementById("add").style.display="block";
+        }
+        $scope.saveStu = function () {
+            $http.post('StudentController/addStu.do',$scope.stu).success(function (response) {
+                if(response.success){
+                    alert(response.message);
+                    $scope.findAll();
+                    document.getElementById("add").style.display="none";
+                }else{
+                    alert(response.message+"11111");
+                }
+            })
+        }
+        $scope.findOne = function (id) {
+            $http.get("StudentController/getStuByid.do?id="+id).success(function (response) {
+                $scope.stu=response;
+                document.getElementById("add").style.display="block";
+            })
+        }
+        $scope.findAllConn=function(){
+            $http.post("StudentController/findAllConn.do",$scope.stu).success(function (response) {
+                $scope.list = response;
+            });
+        }
+        $scope.ids =[];
+        $scope.updateSelection = function ($event,id) {
+            if($event.target.checked){
+                $scope.ids.push(id);
+            }else{
+                //这个是用户取消选择了，我们需要把用户取消的这个id在数组中的位置找出来，下标
+                var index = $scope.ids.indexOf(id);
+                /**
+                 *去按照下标删除，第二个参数，是删除几个，只能删除一个
+                 */
+                $scope.ids.splice(index,1);
+            }
+          //  alert($scope.ids);
+        }
+        $scope.deleteStu = function () {
+            $http.post("StudentController/delStu.do",$scope.ids).success(function (response) {
+                if(response.success){
+                    alert(response.success);
+                    $scope.findAll();
+                }else{
+                    alert(response.message);
+                }
+            })
+        }
+
+    });
+
+</script>
+<body ng-app="myApp" ng-controller="myController" ng-init="findAll()">
+<center>
+    <h1>学生管理</h1>
+<table border="1" cellspacing="0" width="600" rules="all">
+    <input type="button" value="批量删除" ng-click="deleteStu()"/><br>
+    <input type="button" ng-click="toAdd()" value="新增"/><br>
+    按照学生姓名:<input type="text" size="3" ng-model="stu.name"/><br>
+    学生年龄:<input type="number" ng-model="stu.age"/>--至--
+    <input type="number" ng-model="stu.eage"/>
+    <input type="button" value="检索" ng-click="findAllConn()"/>
+    <tr>
+        <th>编号</th>
+        <th>编号</th>
+        <th>姓名</th>
+        <th>年龄</th>
+        <th>生日</th>
+        <th>住址</th>
+        <th>操作</th>
+    </tr>
+    <tr ng-repeat="s in list">
+        <td><input type="checkbox" ng-click="updateSelection($event,s.id)"/></td>
+        <td>{{s.id}}</td>
+        <td>{{s.name}}</td>
+        <td>{{s.age}}</td>
+        <td>{{s.birthday}}</td>
+        <td>{{s.address}}</td>
+        <td><input type="button" value="修改" ng-click="findOne(s.id)"/></td>
+    </tr>
+</table>
+    <div id="add"  style="display: none" align="center">
+        <h3>商品入库</h3>
+        <table>
+            <tr align="center">
+                <td>学生名称:</td>
+                <td><input type="text" ng-model="stu.name" name="diNone"></td>
+            </tr>
+            <tr align="center">
+                <td>学生年龄:</td>
+                <td><input type="text"  ng-model="stu.age" name="diNone"></td>
+            </tr>
+            <tr align="center">
+                <td>学生生日:</td>
+                <td><input type="date"  ng-model="stu.birthday" ></td>
+            </tr>
+            <tr align="center">
+                <td>家庭地址:</td>
+                <td>
+                    <input type="text"  ng-model="stu.address" name="diNone">
+                </td>
+            </tr>
+            <tr align="center">
+                <td colspan="2">
+                   <!-- 请选择:
+                    <select  v-model="entity.aname1" @change="findCity2List" name="diNone">
+                        <option v-for="c in City1List" ng-bind:value="c" >{{c.cname}}</option>
+                    </select>省&#45;&#45;
+                    <select  v-model="entity.aname2" @change="findCity3List" name="diNone" >
+                        <option v-for="c in City2List" ng-bind:value="c" >{{c.cname}}</option>
+                    </select>市&#45;&#45;
+                    <select  v-model="entity.aname3" @change="pinjie" name="diNone">
+                        <option v-for="c in City3List" v-bind:value="c" >{{c.cname}}</option>
+                    </select>县</td>-->
+            </tr>
+            <tr align="center">
+                <td colspan="2"><input type="button" value="保存" ng-click="saveStu()"/></td>
+            </tr>
+        </table>
+    </div>
+</center>
+</body>
+</html>
